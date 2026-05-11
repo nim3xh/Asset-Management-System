@@ -35,9 +35,6 @@ public class SecurityConfig {
     private static final String ADMIN_ROLE = "ADMIN";
     private static final String IT_MANAGER_ROLE = "IT_MANAGER";
     private static final String IT_STAFF_ROLE = "IT_STAFF";
-    private static final String[] ADMIN_AUTHORITIES = {ADMIN_ROLE};
-    private static final String[] ADMIN_IT_MANAGER_AUTHORITIES = {ADMIN_ROLE, IT_MANAGER_ROLE};
-    private static final String[] MANAGEMENT_AUTHORITIES = {ADMIN_ROLE, IT_MANAGER_ROLE, IT_STAFF_ROLE};
 
     private final UserDetailsService ourUserDetailsService;
     private final JWTAuthFilter jwtAuthFilter;
@@ -63,8 +60,8 @@ public class SecurityConfig {
                         .requestMatchers(API_PREFIX + version + "/public/**").permitAll()
                         .requestMatchers("/css/**", "/image/**").permitAll()
                         .requestMatchers(API_PREFIX + version + "/user-management/**").hasAnyAuthority(ADMIN_ROLE)
-                        .requestMatchers(API_PREFIX + version + "/device/**").hasAnyAuthority(ADMIN_ROLE, IT_MANAGER_ROLE)
-                        .requestMatchers(API_PREFIX + version + "/brand/**").hasAnyAuthority(ADMIN_ROLE, IT_MANAGER_ROLE)
+                        .requestMatchers(API_PREFIX + version + "/device/**").hasAnyAuthority(ADMIN_ROLE, IT_MANAGER_ROLE, IT_STAFF_ROLE)
+                        .requestMatchers(API_PREFIX + version + "/brand/**").hasAnyAuthority(ADMIN_ROLE, IT_MANAGER_ROLE, IT_STAFF_ROLE)
                         .requestMatchers(API_PREFIX + version + "/assign/**").hasAnyAuthority(ADMIN_ROLE, IT_MANAGER_ROLE, IT_STAFF_ROLE)
                         .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

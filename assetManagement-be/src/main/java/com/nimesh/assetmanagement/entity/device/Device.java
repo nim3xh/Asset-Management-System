@@ -36,10 +36,10 @@ public class Device extends AuditModifyUser {
   private BigDecimal purchaseCost;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "current_status")
+  @Column(name = "current_status", length = 50)
   private DeviceStatus currentStatus;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "status")
+  @Column(name = "status", length = 50)
   private AuditModifyUser.Status status;
 }

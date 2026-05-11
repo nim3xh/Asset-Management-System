@@ -43,7 +43,7 @@ public class User implements UserDetails {
   private Boolean isActive;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "role")
+  @Column(name = "role", length = 50)
   private Role role;
 
   @Override

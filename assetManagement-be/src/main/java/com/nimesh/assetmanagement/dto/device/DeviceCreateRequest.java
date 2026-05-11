@@ -1,6 +1,5 @@
 package com.nimesh.assetmanagement.dto.device;
 
-import com.nimesh.assetmanagement.entity.device.Brand;
 import com.nimesh.assetmanagement.enums.DeviceStatus;
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
@@ -15,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class DeviceCreateRequest {
   private String serialNumber;
   private String assetTag;
-  private Brand brand;
+  private Long brandId;
   private String model;
   private BigDecimal purchaseCost;
   private DeviceStatus currentStatus;

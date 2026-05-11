@@ -19,8 +19,7 @@ export function AssignmentManager() {
   const [currentAssignment, setCurrentAssignment] = useState(null)
   const [formData, setFormData] = useState({
     userId: '',
-    deviceId: '',
-    returnDate: ''
+    deviceId: ''
   })
   const [returnDate, setReturnDate] = useState(new Date().toISOString().split('T')[0])
   const [errors, setErrors] = useState({})
@@ -54,7 +53,7 @@ export function AssignmentManager() {
       if (response?.data) {
         const enhancedContent = response.data.content.map(item => ({
           ...item,
-          actions: (row) => !row.actualReturnDate && (
+          actions: (row) => !row.returnDate && (
             <Button 
               variant="ghost" 
               size="sm" 
@@ -90,14 +89,16 @@ export function AssignmentManager() {
       if (usersRes?.data?.content) {
         setUsers(usersRes.data.content.map(u => ({ 
           value: u.userId, 
-          label: `${u.firstName} ${u.lastName} (${u.email})` 
+          label: `${u.firstName} ${u.lastName} (${u.email})`,
+          original: u
         })))
       }
       
       if (devicesRes?.data?.content) {
         setDevices(devicesRes.data.content.map(d => ({ 
           value: d.deviceId, 
-          label: `${d.assetTag} - ${d.brand?.name} ${d.model}` 
+          label: `${d.assetTag} - ${d.brand?.name} ${d.model}`,
+          original: d
         })))
       }
     } catch (err) {
@@ -108,8 +109,7 @@ export function AssignmentManager() {
   const handleOpenModal = () => {
     setFormData({
       userId: '',
-      deviceId: '',
-      returnDate: ''
+      deviceId: ''
     })
     setErrors({})
     setIsModalOpen(true)
@@ -125,7 +125,6 @@ export function AssignmentManager() {
     const newErrors = {}
     if (!formData.userId) newErrors.userId = 'User is required'
     if (!formData.deviceId) newErrors.deviceId = 'Device is required'
-    if (!formData.returnDate) newErrors.returnDate = 'Planned return date is required'
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -137,6 +136,22 @@ export function AssignmentManager() {
     setIsLoading(true)
     try {
       await assignmentService.create(formData)
+      
+      // Update device status to ASSIGNED
+      const selectedDeviceOption = devices.find(d => String(d.value) === String(formData.deviceId))
+      if (selectedDeviceOption?.original) {
+        const device = selectedDeviceOption.original
+        await deviceService.update(device.deviceId, {
+          serialNumber: device.serialNumber,
+          assetTag: device.assetTag,
+          brandId: device.brand?.brandId,
+          model: device.model,
+          purchaseCost: device.purchaseCost,
+          currentStatus: 'ASSIGNED',
+          status: device.status
+        })
+      }
+
       setIsModalOpen(false)
       fetchAssignments()
       fetchFormData() // Refresh available devices
@@ -163,27 +178,30 @@ export function AssignmentManager() {
 
   const columns = [
     { 
-      key: 'user', 
+      key: 'userId', 
       label: 'Employee',
-      render: (val) => val ? `${val.firstName} ${val.lastName}` : 'N/A'
+      render: (val, row) => {
+        if (row.user) return `${row.user.firstName} ${row.user.lastName}`
+        const user = users.find(u => String(u.value) === String(val))?.original
+        return user ? `${user.firstName} ${user.lastName}` : `User ID: ${val}`
+      }
     },
     { 
-      key: 'device', 
+      key: 'deviceId', 
       label: 'Asset',
-      render: (val) => val ? `${val.assetTag} (${val.model})` : 'N/A'
+      render: (val, row) => {
+        if (row.device) return `${row.device.assetTag} (${row.device.model})`
+        const device = devices.find(d => String(d.value) === String(val))?.original
+        return device ? `${device.assetTag} (${device.model})` : `Device ID: ${val}`
+      }
     },
     { 
-      key: 'assignmentDate', 
+      key: 'createdAt', 
       label: 'Assigned On',
       render: (val) => val ? new Date(val).toLocaleDateString() : 'N/A'
     },
     { 
       key: 'returnDate', 
-      label: 'Due Date',
-      render: (val) => val ? new Date(val).toLocaleDateString() : 'N/A'
-    },
-    { 
-      key: 'actualReturnDate', 
       label: 'Returned On',
       render: (val) => val ? (
         <span className="text-emerald-400">{new Date(val).toLocaleDateString()}</span>
@@ -269,14 +287,6 @@ export function AssignmentManager() {
             value={formData.deviceId}
             onChange={(e) => setFormData({ ...formData, deviceId: e.target.value })}
             error={errors.deviceId}
-          />
-          <Input
-            label="Planned Return Date"
-            type="date"
-            value={formData.returnDate}
-            onChange={(e) => setFormData({ ...formData, returnDate: e.target.value })}
-            error={errors.returnDate}
-            min={new Date().toISOString().split('T')[0]}
           />
           {errors.submit && <p className="text-sm text-red-500 text-center">{errors.submit}</p>}
         </form>

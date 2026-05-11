@@ -119,8 +119,7 @@ export function DeviceManager() {
     setIsLoading(true)
     try {
       const payload = {
-        ...formData,
-        brand: { brandId: formData.brandId }
+        ...formData
       }
       
       if (currentDevice) {
