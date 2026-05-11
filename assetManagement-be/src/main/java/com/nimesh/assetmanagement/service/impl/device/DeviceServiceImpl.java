@@ -9,6 +9,9 @@ import com.nimesh.assetmanagement.exception.AssetManagementException;
 import com.nimesh.assetmanagement.repository.device.DeviceRepository;
 import com.nimesh.assetmanagement.response.APIResponse;
 import com.nimesh.assetmanagement.service.device.DeviceService;
+import jakarta.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,7 +41,29 @@ public class DeviceServiceImpl implements DeviceService {
         "asc".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
 
     Specification<Device> specification =
-        (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+        (root, query, cb) -> {
+          List<Predicate> predicates = new ArrayList<>();
+          if (filters != null) {
+            String search = filters.get("search");
+            if (search != null && !search.isBlank()) {
+              String like = "%" + search.toLowerCase() + "%";
+              predicates.add(
+                  cb.or(
+                      cb.like(cb.lower(root.get("assetTag")), like),
+                      cb.like(cb.lower(root.get("serialNumber")), like),
+                      cb.like(cb.lower(root.get("model")), like)));
+            }
+            
+            // Keep specific filters too if needed
+            String currentStatus = filters.get("currentStatus");
+            if (currentStatus != null && !currentStatus.isBlank()) {
+              try {
+                predicates.add(cb.equal(root.get("currentStatus"), com.nimesh.assetmanagement.enums.DeviceStatus.valueOf(currentStatus)));
+              } catch (IllegalArgumentException ignored) {}
+            }
+          }
+          return cb.and(predicates.toArray(new Predicate[0]));
+        };
     Page<Device> devicePage =
         deviceRepository.findAll(
             specification,

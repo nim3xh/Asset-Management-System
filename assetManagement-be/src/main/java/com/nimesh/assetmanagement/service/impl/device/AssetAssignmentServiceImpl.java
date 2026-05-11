@@ -54,6 +54,16 @@ public class AssetAssignmentServiceImpl implements AssetAssignmentService {
           List<Predicate> predicates = new ArrayList<>();
 
           if (filters != null) {
+            String search = filters.get("search");
+            if (search != null && !search.isBlank()) {
+              String like = "%" + search.toLowerCase() + "%";
+              predicates.add(
+                  cb.or(
+                      cb.like(cb.lower(root.get("user").get("firstName")), like),
+                      cb.like(cb.lower(root.get("user").get("lastName")), like),
+                      cb.like(cb.lower(root.get("device").get("assetTag")), like)));
+            }
+
             if (filters.containsKey("userId")
                 && filters.get("userId") != null
                 && !filters.get("userId").isBlank()) {

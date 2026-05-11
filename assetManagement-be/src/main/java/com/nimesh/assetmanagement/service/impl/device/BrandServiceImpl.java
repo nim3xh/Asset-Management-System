@@ -37,7 +37,12 @@ public class BrandServiceImpl implements BrandService {
     Sort.Direction direction =
         "asc".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
 
-    Specification<Brand> specification = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+    Specification<Brand> specification = (root, query, cb) -> {
+      if (filters != null && filters.containsKey("name") && filters.get("name") != null && !filters.get("name").isBlank()) {
+        return cb.like(cb.lower(root.get("name")), "%" + filters.get("name").toLowerCase() + "%");
+      }
+      return cb.conjunction();
+    };
     Page<Brand> pageResult =
         brandRepository.findAll(specification, PageRequest.of(pageNumber, pageSize, Sort.by(direction, resolvedSortField)));
 
