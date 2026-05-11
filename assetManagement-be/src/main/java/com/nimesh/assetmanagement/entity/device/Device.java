@@ -1,6 +1,7 @@
 package com.nimesh.assetmanagement.entity.device;
 
 import com.nimesh.assetmanagement.entity.AuditModifyUser;
+import com.nimesh.assetmanagement.enums.DeviceStatus;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import lombok.*;
@@ -26,7 +27,7 @@ public class Device extends AuditModifyUser {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "brand_id", referencedColumnName = "brand_id")
-  private Brand brandId;
+  private Brand brand;
 
   @Column(name = "model")
   private String model;
@@ -36,5 +37,9 @@ public class Device extends AuditModifyUser {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "current_status")
-  private AuditModifyUser.Status currentStatus;
+  private DeviceStatus currentStatus;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status")
+  private AuditModifyUser.Status status;
 }

@@ -19,13 +19,25 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    private static final String API_PREFIX = "/api/";
+    private static final String ADMIN_ROLE = "ADMIN";
+    private static final String IT_MANAGER_ROLE = "IT_MANAGER";
+    private static final String IT_STAFF_ROLE = "IT_STAFF";
+    private static final String[] ADMIN_AUTHORITIES = {ADMIN_ROLE};
+    private static final String[] ADMIN_IT_MANAGER_AUTHORITIES = {ADMIN_ROLE, IT_MANAGER_ROLE};
+    private static final String[] MANAGEMENT_AUTHORITIES = {ADMIN_ROLE, IT_MANAGER_ROLE, IT_STAFF_ROLE};
 
     private final UserDetailsService ourUserDetailsService;
     private final JWTAuthFilter jwtAuthFilter;
@@ -42,21 +54,18 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
-        List<String> whiteListUrls = List.of(
-                "/api/" + version + "/auth/**",
-                "/api/" + version + "/public/**",
-                "/css/**",
-                "/image/**"
-        );
-
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(request -> request.requestMatchers(whiteListUrls.toArray(new String[0])).permitAll()
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(request -> request
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/admin/**").hasAnyAuthority("ADMIN")
-                        .requestMatchers("/user/**").hasAnyAuthority("USER")
-                        .requestMatchers("/adminuser/**").hasAnyAuthority("USER", "ADMIN")
+                        .requestMatchers(API_PREFIX + version + "/auth/**").permitAll()
+                        .requestMatchers(API_PREFIX + version + "/public/**").permitAll()
+                        .requestMatchers("/css/**", "/image/**").permitAll()
+                        .requestMatchers(API_PREFIX + version + "/user-management/**").hasAnyAuthority(ADMIN_ROLE)
+                        .requestMatchers(API_PREFIX + version + "/device/**").hasAnyAuthority(ADMIN_ROLE, IT_MANAGER_ROLE)
+                        .requestMatchers(API_PREFIX + version + "/brand/**").hasAnyAuthority(ADMIN_ROLE, IT_MANAGER_ROLE)
+                        .requestMatchers(API_PREFIX + version + "/assign/**").hasAnyAuthority(ADMIN_ROLE, IT_MANAGER_ROLE, IT_STAFF_ROLE)
                         .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
@@ -66,19 +75,31 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider(){
-        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider(ourUserDetailsService);
-        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
-        return daoAuthenticationProvider;
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(ourUserDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
