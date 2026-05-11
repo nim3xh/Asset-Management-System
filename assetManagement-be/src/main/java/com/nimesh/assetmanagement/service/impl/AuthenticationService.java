@@ -1,187 +1,88 @@
-package com.rental.x.service.impl;
+package com.nimesh.assetmanagement.service.impl;
 
-import com.rental.x.dto.application.LoginRequest;
-import com.rental.x.dto.application.RefreshTokenRequest;
-import com.rental.x.dto.application.RegistrationRequest;
-import com.rental.x.entity.application.PasswordResetToken;
-import com.rental.x.entity.application.User;
-import com.rental.x.exception.RentalException;
-import com.rental.x.repository.application.PasswordResetTokenRepository;
-import com.rental.x.repository.application.UserRepository;
-import com.rental.x.response.APIResponse;
-import com.rental.x.response.AuthResponse;
-import com.rental.x.service.email.EmailService;
-import com.rental.x.utility.JWTUtils;
+import com.nimesh.assetmanagement.dto.LoginRequest;
+import com.nimesh.assetmanagement.dto.RegistrationRequest;
+import com.nimesh.assetmanagement.entity.User;
+import com.nimesh.assetmanagement.enums.Role;
+import com.nimesh.assetmanagement.exception.AuthenticationException;
+import com.nimesh.assetmanagement.repository.UserRepository;
+import com.nimesh.assetmanagement.response.APIResponse;
+import com.nimesh.assetmanagement.response.AuthResponse;
+import com.nimesh.assetmanagement.utility.JWTUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
-    @Autowired
-    private  UserRepository userRepository;
-    @Autowired
-    private  PasswordEncoder passwordEncoder;
-    @Autowired
-    private  JWTUtils jwtUtils;
-    @Autowired
-    private  AuthenticationManager authenticationManager;
+  private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final JWTUtils jwtUtils;
+  private final AuthenticationManager authenticationManager;
 
-    @Value("${password.reset.link.expiry.minutes}")
-    private int passwordResetLinkExpiryMinutes;
-
-    @Value("${reset.link.domain}")
-    private String resetLinkDomain;
-
-    private final PasswordResetTokenRepository passwordResetTokenRepository;
-
-    private final EmailService emailService;
-
-
-    public APIResponse<AuthResponse> register(RegistrationRequest request) {
-
-        if(userRepository.existsByEmail(request.getEmail())){
-            throw new RentalException("Email already exists");
-        }
-
-        User newUser = userRepository.save(buildUser(request));
-
-        return APIResponse.success(AuthResponse.builder()
-                .user(newUser)
-                .message("user registration success")
-                .build());
+  public APIResponse<AuthResponse> register(RegistrationRequest request) {
+    if (userRepository.existsByEmailAndIsActive(request.getEmail(), true)) {
+      throw new AuthenticationException(HttpStatus.CONFLICT.value(), "Email already exists");
     }
 
-    private User buildUser(RegistrationRequest request) {
-        return User.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .middleName(request.getMiddleName())
-                .email(request.getEmail())
-                .isActive(true)
-                .nickName(request.getNickName())
-                .userType(request.getUserType())
-                .effectiveDate(LocalDateTime.now())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .build();
+    User savedUser = userRepository.save(buildUser(request));
+
+    return APIResponse.success(
+        AuthResponse.builder().user(safeUser(savedUser)).message("User registration successful").build());
+  }
+
+  private User buildUser(RegistrationRequest request) {
+    return User.builder()
+        .firstName(request.getFirstName())
+        .lastName(request.getLastName())
+        .middleName(request.getMiddleName())
+        .email(request.getEmail())
+        .isActive(true)
+        .role(request.getRole() != null ? request.getRole() : Role.IT_STAFF)
+        .password(passwordEncoder.encode(request.getPassword()))
+        .build();
+  }
+
+  public APIResponse<AuthResponse> login(LoginRequest request) {
+    try {
+      authenticationManager.authenticate(
+          new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+    } catch (BadCredentialsException ex) {
+      throw new AuthenticationException(HttpStatus.UNAUTHORIZED.value(), "Invalid email or password");
     }
 
-    public APIResponse<AuthResponse> login(LoginRequest request) throws RentalException {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(),request.getPassword()));
-        var user = userRepository.findByEmailAndIsActive(request.getEmail(), true).orElseThrow(
-                () -> new RentalException("Active user not found given email")
-        );
-        var jwt = jwtUtils.generateToken(user, user.getUserId());
-        var refreshToken = jwtUtils.generateRefreshToken(new HashMap<>(), user, user.getUserId());
-        return APIResponse.success(AuthResponse.builder()
-                        .token(jwt)
-                        .refreshToken(refreshToken)
-                        .expirationTime("24h")
-                        .statusCode(200)
-                        .message("login success")
-                .build());
-    }
+    User user =
+        userRepository
+            .findByEmailAndIsActive(request.getEmail(), true)
+            .orElseThrow(
+                () -> new AuthenticationException(HttpStatus.NOT_FOUND.value(), "Active user not found"));
 
-    public APIResponse<AuthResponse> refresh(RefreshTokenRequest request) {
-        String email = jwtUtils.extractUsername(request.getToken());
-        User user =userRepository.findByEmailAndIsActive(email, true).orElseThrow(
-                () -> new RentalException("Active user not found given token related email")
-        );
-        if (jwtUtils.isTokenValid(request.getToken(),user)){
-            var jwt = jwtUtils.generateToken(user, user.getUserId());
-            return APIResponse.success(AuthResponse.builder()
-                    .token(jwt)
-                    .token(jwtUtils.generateRefreshToken(new HashMap<>(), user, user.getUserId()))
-                    .message("successfully Refreshed Token")
-                    .expirationTime("24h")
-                    .build());
+    String token = jwtUtils.generateToken(user, user.getUserId());
 
-        }
-        return APIResponse.error("invalid token");
-    }
+    return APIResponse.success(
+        AuthResponse.builder()
+            .token(token)
+            .role(user.getRole() != null ? user.getRole().name() : null)
+            .user(safeUser(user))
+            .expirationTime("24h")
+            .message("Login successful")
+            .build());
+  }
 
-    public APIResponse<String> forgotPasswordEmailSend(String email) {
-
-        try {
-
-            User user = userRepository.findByEmailAndIsActive(email, true).orElseThrow(
-                    () -> new RentalException("Can't send email, active user not found given email")
-            );
-
-            String token = UUID.randomUUID().toString();
-            String tokenHash = passwordEncoder.encode(token);
-
-            PasswordResetToken tk =passwordResetTokenRepository.save(buildResetObject(tokenHash,  user.getUserId()));
-
-            String resetLink =
-                    resetLinkDomain + "/reset-password?id="
-                            + tk.getId()
-                            + "&token=" + token;
-
-            //todo email send function
-            emailService.sendPasswordResetEmail(
-                    user.getEmail(),
-                    user.getFirstName() + " " + user.getMiddleName() + " " + user.getMiddleName(),
-                    resetLink
-            );
-            return APIResponse.success("Password reset link send Successfully");
-
-        }catch (RentalException e){
-            return APIResponse.error(e.getMessage());
-        }
-
-    }
-
-    @Transactional
-    public void resetPassword(Long tokenId, String rawToken, String newPassword){
-
-        PasswordResetToken token =
-                validateToken(tokenId, rawToken);
-
-        User user = userRepository.findById(token.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
-
-        token.setUsed(true);
-        passwordResetTokenRepository.save(token);
-    }
-
-
-    public PasswordResetToken validateToken(Long tokenId, String rawToken){
-        PasswordResetToken token =
-                passwordResetTokenRepository.findByIdAndUsedFalse(tokenId)
-                        .orElseThrow(() ->
-                                new RentalException("Invalid or expired token"));
-
-        if (token.getExpiryTime().isBefore(LocalDateTime.now())) {
-            throw new RentalException("Token expired");
-        }
-
-        if (!passwordEncoder.matches(rawToken, token.getTokenHash())) {
-            throw new RentalException("Invalid token");
-        }
-
-        return token;
-    }
-
-    private PasswordResetToken buildResetObject(String tokenHash, Long userId) {
-        return PasswordResetToken.builder()
-                .userId(userId)
-                .tokenHash(tokenHash)
-                .expiryTime(LocalDateTime.now().plusMinutes(passwordResetLinkExpiryMinutes))
-                .used(false)
-                .build();
-    }
+  private User safeUser(User user) {
+    return User.builder()
+        .userId(user.getUserId())
+        .firstName(user.getFirstName())
+        .lastName(user.getLastName())
+        .middleName(user.getMiddleName())
+        .email(user.getEmail())
+        .isActive(user.getIsActive())
+        .role(user.getRole())
+        .build();
+  }
 }
