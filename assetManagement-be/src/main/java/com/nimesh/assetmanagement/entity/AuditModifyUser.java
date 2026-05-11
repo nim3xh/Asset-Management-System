@@ -32,6 +32,7 @@ public abstract class AuditModifyUser extends AuditCreateUser {
   @LastModifiedDate @Column private LocalDateTime updatedAt;
 
   @Enumerated(EnumType.STRING)
+  @Column(length = 50)
   private Status status;
 
   public enum Status {

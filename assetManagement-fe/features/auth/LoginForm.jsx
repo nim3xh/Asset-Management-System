@@ -10,7 +10,7 @@ const initialForm = {
 
 export function LoginForm({ onGoToSignup }) {
   const navigate = useNavigate()
-  const { login, isLoading } = useAuth()
+  const { login, logout, isLoading } = useAuth()
   const [form, setForm] = useState(initialForm)
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState({})
@@ -32,7 +32,15 @@ export function LoginForm({ onGoToSignup }) {
     setFieldErrors({})
 
     try {
-      await login(form)
+      const result = await login(form)
+      
+      const normalizedRole = (result.role || '').replace(/^ROLE_/, '').toUpperCase()
+      if (normalizedRole === 'EMPLOYEE') {
+        logout()
+        setError('Access restricted: You are registered as an Employee. Please contact the IT Department to receive your credentials or further instructions.')
+        return
+      }
+
       setForm(initialForm)
       navigate('/dashboard', { replace: true })
     } catch (submitError) {

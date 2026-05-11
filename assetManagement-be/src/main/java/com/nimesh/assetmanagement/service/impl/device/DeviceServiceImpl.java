@@ -6,6 +6,7 @@ import com.nimesh.assetmanagement.dto.device.DeviceUpdateRequest;
 import com.nimesh.assetmanagement.entity.AuditModifyUser;
 import com.nimesh.assetmanagement.entity.device.Device;
 import com.nimesh.assetmanagement.exception.AssetManagementException;
+import com.nimesh.assetmanagement.repository.device.BrandRepository;
 import com.nimesh.assetmanagement.repository.device.DeviceRepository;
 import com.nimesh.assetmanagement.response.APIResponse;
 import com.nimesh.assetmanagement.service.device.DeviceService;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 public class DeviceServiceImpl implements DeviceService {
 
   private final DeviceRepository deviceRepository;
+  private final BrandRepository brandRepository;
 
   @Override
   public APIResponse<Page<DeviceResponse>> getDevices(
@@ -80,11 +82,14 @@ public class DeviceServiceImpl implements DeviceService {
 
   @Override
   public APIResponse<DeviceResponse> createDevice(DeviceCreateRequest deviceRequest) {
+    com.nimesh.assetmanagement.entity.device.Brand brand = brandRepository.findById(deviceRequest.getBrandId())
+        .orElseThrow(() -> new AssetManagementException(HttpStatus.NOT_FOUND.value(), "Brand not found"));
+
     Device device =
         Device.builder()
             .serialNumber(deviceRequest.getSerialNumber())
             .assetTag(deviceRequest.getAssetTag())
-            .brand(deviceRequest.getBrand())
+            .brand(brand)
             .model(deviceRequest.getModel())
             .purchaseCost(deviceRequest.getPurchaseCost())
             .currentStatus(deviceRequest.getCurrentStatus())
@@ -99,9 +104,12 @@ public class DeviceServiceImpl implements DeviceService {
       String deviceId, DeviceUpdateRequest deviceRequest) {
     Device device = isDeviceExists(deviceId);
 
+    com.nimesh.assetmanagement.entity.device.Brand brand = brandRepository.findById(deviceRequest.getBrandId())
+        .orElseThrow(() -> new AssetManagementException(HttpStatus.NOT_FOUND.value(), "Brand not found"));
+
     device.setSerialNumber(deviceRequest.getSerialNumber());
     device.setAssetTag(deviceRequest.getAssetTag());
-    device.setBrand(deviceRequest.getBrand());
+    device.setBrand(brand);
     device.setModel(deviceRequest.getModel());
     device.setPurchaseCost(deviceRequest.getPurchaseCost());
     device.setCurrentStatus(deviceRequest.getCurrentStatus());
