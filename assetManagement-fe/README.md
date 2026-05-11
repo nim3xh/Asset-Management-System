@@ -1,16 +1,62 @@
-# React + Vite
+# Asset Management System - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the React + Vite frontend for the Asset Management System.
 
-Currently, two official plugins are available:
+## 🚀 Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Before you begin, ensure you have the following installed:
+- [Node.js](https://nodejs.org/) (v18 or higher recommended)
+- [npm](https://www.npmjs.com/) (usually comes with Node.js)
 
-## React Compiler
+## ⚙️ Configuration
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The frontend requires environment variables to connect to the backend API.
 
-## Expanding the ESLint configuration
+1. **Create .env File**:
+   In the root of the `assetManagement-fe` directory, ensure you have a `.env` file. You can use the following template:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+   ```env
+   VITE_API_BASE_URL=http://localhost:8080/asset-management
+   VITE_API_VERSION=v1
+   VITE_AUTH_USER_PATH=/auth/user
+   ```
+
+2. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+
+## 🏃 How to Run
+
+### Development Mode
+Runs the app in development mode with Hot Module Replacement (HMR).
+```bash
+npm run dev
+```
+By default, the app will be available at `http://localhost:5173`.
+
+### Production Build
+Builds the app for production to the `dist` folder.
+```bash
+npm run build
+```
+
+### Preview Production Build
+Locally preview the production build.
+```bash
+npm run preview
+```
+
+## 📚 Resources
+
+- [Live Demo (Dummy Link)](https://asset-management-demo.example.com)
+- [UI Components (Dummy Link)](https://asset-management-design.example.com)
+- [Project Documentation (Dummy Link)](https://asset-management-docs.example.com)
+
+## 🛠️ Tech Stack
+- **Framework**: React 19
+- **Build Tool**: Vite 8
+- **Styling**: Tailwind CSS 4
+- **Icons**: Lucide React
+- **Routing**: React Router 7
+- **HTTP Client**: Axios
