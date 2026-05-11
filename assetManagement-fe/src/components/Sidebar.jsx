@@ -1,6 +1,5 @@
 import { NavLink } from 'react-router-dom'
 import { 
-  LayoutDashboard, 
   Smartphone, 
   Tag, 
   Users, 
@@ -46,11 +45,6 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
-        <NavLink to="/dashboard" className={navItemClass}>
-          <LayoutDashboard size={20} />
-          <span>Dashboard</span>
-        </NavLink>
-
         {/* Device Section */}
         {isStaff && (
           <div className="space-y-1">
