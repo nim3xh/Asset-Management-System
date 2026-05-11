@@ -1,10 +1,10 @@
-package com.nimesh.assetmanagement.controller.device;
+package com.nimesh.assetmanagement.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+@RequestMapping(value = "/api/${version}/auth/user")
 @RequiredArgsConstructor
-@RequestMapping(value = "/api/${version}/device")
-public class DeviceController {}
+@RestController
+public class UserController {}
