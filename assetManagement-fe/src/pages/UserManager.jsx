@@ -29,6 +29,7 @@ export function UserManager() {
   })
   const [errors, setErrors] = useState({})
   const [searchQuery, setSearchQuery] = useState('')
+  const [showInactive, setShowInactive] = useState(false)
   const [pagination, setPagination] = useState({
     currentPage: 0,
     pageSize: 10,
@@ -41,7 +42,7 @@ export function UserManager() {
       fetchUsers()
     }, 500)
     return () => clearTimeout(timer)
-  }, [pagination.currentPage, searchQuery])
+  }, [pagination.currentPage, searchQuery, showInactive])
 
   const fetchUsers = async () => {
     setIsLoading(true)
@@ -49,7 +50,8 @@ export function UserManager() {
       const response = await userService.getAll({
         page: pagination.currentPage,
         size: pagination.pageSize,
-        name: searchQuery
+        name: searchQuery,
+        isActive: showInactive ? '' : 'true'
       })
       if (response?.data) {
         setUsers(response.data.content)
@@ -183,6 +185,18 @@ export function UserManager() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-slate-800/50 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/50 transition-all"
+            />
+          </div>
+          <div className="flex items-center gap-2 bg-slate-800/50 border border-slate-700 rounded-xl px-3 py-1.5">
+            <label htmlFor="show-inactive" className="text-xs text-slate-400 cursor-pointer select-none">
+              Show Inactive
+            </label>
+            <input 
+              id="show-inactive"
+              type="checkbox" 
+              checked={showInactive}
+              onChange={(e) => setShowInactive(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-600/50"
             />
           </div>
         </div>

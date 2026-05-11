@@ -24,6 +24,7 @@ export function AssignmentManager() {
   const [returnDate, setReturnDate] = useState(new Date().toISOString().split('T')[0])
   const [errors, setErrors] = useState({})
   const [searchQuery, setSearchQuery] = useState('')
+  const [showInactive, setShowInactive] = useState(false)
   const [pagination, setPagination] = useState({
     currentPage: 0,
     pageSize: 10,
@@ -40,7 +41,7 @@ export function AssignmentManager() {
       fetchAssignments()
     }, 500)
     return () => clearTimeout(timer)
-  }, [pagination.currentPage, searchQuery])
+  }, [pagination.currentPage, searchQuery, showInactive])
 
   const fetchAssignments = async () => {
     setIsLoading(true)
@@ -48,7 +49,8 @@ export function AssignmentManager() {
       const response = await assignmentService.getAll({
         page: pagination.currentPage,
         size: pagination.pageSize,
-        search: searchQuery
+        search: searchQuery,
+        status: showInactive ? '' : 'ACTIVE'
       })
       if (response?.data) {
         const enhancedContent = response.data.content.map(item => ({
@@ -208,6 +210,17 @@ export function AssignmentManager() {
       ) : (
         <span className="text-amber-400 font-medium">In Use</span>
       )
+    },
+    { 
+      key: 'status', 
+      label: 'Status',
+      render: (val) => (
+        <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${
+          val === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+        }`}>
+          {val || 'ACTIVE'}
+        </span>
+      )
     }
   ]
 
@@ -239,6 +252,18 @@ export function AssignmentManager() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-slate-800/50 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/50 transition-all"
+            />
+          </div>
+          <div className="flex items-center gap-2 bg-slate-800/50 border border-slate-700 rounded-xl px-3 py-1.5">
+            <label htmlFor="show-inactive" className="text-xs text-slate-400 cursor-pointer select-none">
+              Show Inactive
+            </label>
+            <input 
+              id="show-inactive"
+              type="checkbox" 
+              checked={showInactive}
+              onChange={(e) => setShowInactive(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-600/50"
             />
           </div>
         </div>

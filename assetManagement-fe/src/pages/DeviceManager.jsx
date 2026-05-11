@@ -35,6 +35,7 @@ export function DeviceManager() {
   })
   const [errors, setErrors] = useState({})
   const [searchQuery, setSearchQuery] = useState('')
+  const [showInactive, setShowInactive] = useState(false)
   const [pagination, setPagination] = useState({
     currentPage: 0,
     pageSize: 10,
@@ -51,7 +52,7 @@ export function DeviceManager() {
       fetchDevices()
     }, 500)
     return () => clearTimeout(timer)
-  }, [pagination.currentPage, searchQuery])
+  }, [pagination.currentPage, searchQuery, showInactive])
 
   const fetchDevices = async () => {
     setIsLoading(true)
@@ -59,7 +60,8 @@ export function DeviceManager() {
       const response = await deviceService.getAll({
         page: pagination.currentPage,
         size: pagination.pageSize,
-        search: searchQuery
+        search: searchQuery,
+        status: showInactive ? '' : 'ACTIVE'
       })
       if (response?.data) {
         setDevices(response.data.content)
@@ -158,13 +160,24 @@ export function DeviceManager() {
     { key: 'model', label: 'Model' },
     { 
       key: 'currentStatus', 
-      label: 'Status',
+      label: 'Current Status',
       render: (val) => (
         <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${
           val === 'AVAILABLE' ? 'bg-emerald-500/10 text-emerald-400' : 
           val === 'ASSIGNED' ? 'bg-blue-500/10 text-blue-400' : 
           val === 'IN_REPAIR' ? 'bg-amber-500/10 text-amber-400' : 
           'bg-red-500/10 text-red-400'
+        }`}>
+          {val}
+        </span>
+      )
+    },
+    { 
+      key: 'status', 
+      label: 'Record Status',
+      render: (val) => (
+        <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${
+          val === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
         }`}>
           {val}
         </span>
@@ -207,6 +220,18 @@ export function DeviceManager() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-slate-800/50 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/50 transition-all"
+            />
+          </div>
+          <div className="flex items-center gap-2 bg-slate-800/50 border border-slate-700 rounded-xl px-3 py-1.5">
+            <label htmlFor="show-inactive" className="text-xs text-slate-400 cursor-pointer select-none">
+              Show Inactive
+            </label>
+            <input 
+              id="show-inactive"
+              type="checkbox" 
+              checked={showInactive}
+              onChange={(e) => setShowInactive(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-600/50"
             />
           </div>
         </div>
