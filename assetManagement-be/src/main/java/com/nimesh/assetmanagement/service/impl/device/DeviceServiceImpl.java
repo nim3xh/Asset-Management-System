@@ -3,6 +3,7 @@ package com.nimesh.assetmanagement.service.impl.device;
 import com.nimesh.assetmanagement.dto.device.DeviceCreateRequest;
 import com.nimesh.assetmanagement.dto.device.DeviceResponse;
 import com.nimesh.assetmanagement.dto.device.DeviceUpdateRequest;
+import com.nimesh.assetmanagement.entity.AuditModifyUser;
 import com.nimesh.assetmanagement.entity.device.Device;
 import com.nimesh.assetmanagement.exception.AssetManagementException;
 import com.nimesh.assetmanagement.repository.device.DeviceRepository;
@@ -62,6 +63,7 @@ public class DeviceServiceImpl implements DeviceService {
             .model(deviceRequest.getModel())
             .purchaseCost(deviceRequest.getPurchaseCost())
             .currentStatus(deviceRequest.getCurrentStatus())
+            .status(AuditModifyUser.Status.ACTIVE)
             .build();
 
     return APIResponse.success(toResponse(deviceRepository.save(device)));
@@ -85,7 +87,10 @@ public class DeviceServiceImpl implements DeviceService {
 
   @Override
   public APIResponse<Void> deleteDevice(String deviceId) {
-    return null;
+    Device device = isDeviceExists(deviceId);
+    device.setStatus(AuditModifyUser.Status.INACTIVE);
+    deviceRepository.saveAndFlush(device);
+    return APIResponse.success(null);
   }
 
   private DeviceResponse toResponse(Device device) {

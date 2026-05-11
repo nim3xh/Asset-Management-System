@@ -12,28 +12,26 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class RestExceptionHandler {
 
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<APIResponse<Void>> handleAuthenticationException(AuthenticationException ex) {
-        return ResponseEntity.status(ex.getStatusCode())
-                .body(APIResponse.error(ex.getResponseBody()));
-    }
+  @ExceptionHandler(AuthenticationException.class)
+  public ResponseEntity<APIResponse<Void>> handleAuthenticationException(
+      AuthenticationException ex) {
+    return ResponseEntity.status(ex.getStatusCode()).body(APIResponse.error(ex.getResponseBody()));
+  }
 
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<APIResponse<Void>> handleBadCredentials(BadCredentialsException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(APIResponse.error("Invalid email or password"));
-    }
+  @ExceptionHandler(BadCredentialsException.class)
+  public ResponseEntity<APIResponse<Void>> handleBadCredentials(BadCredentialsException ex) {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        .body(APIResponse.error("Invalid email or password"));
+  }
 
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<APIResponse<Void>> handleUsernameNotFound(UsernameNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(APIResponse.error(ex.getMessage()));
-    }
+  @ExceptionHandler(UsernameNotFoundException.class)
+  public ResponseEntity<APIResponse<Void>> handleUsernameNotFound(UsernameNotFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(ex.getMessage()));
+  }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<APIResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(APIResponse.error("Validation failed"));
-    }
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<APIResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(APIResponse.error("Validation failed"));
+  }
 }
-
