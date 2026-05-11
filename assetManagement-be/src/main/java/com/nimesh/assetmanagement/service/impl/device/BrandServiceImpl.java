@@ -38,10 +38,20 @@ public class BrandServiceImpl implements BrandService {
         "asc".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
 
     Specification<Brand> specification = (root, query, cb) -> {
-      if (filters != null && filters.containsKey("name") && filters.get("name") != null && !filters.get("name").isBlank()) {
-        return cb.like(cb.lower(root.get("name")), "%" + filters.get("name").toLowerCase() + "%");
+      jakarta.persistence.criteria.Predicate predicate = cb.conjunction();
+      
+      if (filters != null) {
+        if (filters.containsKey("name") && filters.get("name") != null && !filters.get("name").isBlank()) {
+          predicate = cb.and(predicate, cb.like(cb.lower(root.get("name")), "%" + filters.get("name").toLowerCase() + "%"));
+        }
+        
+        if (filters.containsKey("status") && filters.get("status") != null && !filters.get("status").isBlank()) {
+          try {
+            predicate = cb.and(predicate, cb.equal(root.get("status"), com.nimesh.assetmanagement.entity.AuditModifyUser.Status.valueOf(filters.get("status").toUpperCase())));
+          } catch (IllegalArgumentException ignored) {}
+        }
       }
-      return cb.conjunction();
+      return predicate;
     };
     Page<Brand> pageResult =
         brandRepository.findAll(specification, PageRequest.of(pageNumber, pageSize, Sort.by(direction, resolvedSortField)));
@@ -81,6 +91,7 @@ public class BrandServiceImpl implements BrandService {
     return BrandResponse.builder()
         .brandId(brand.getBrandId())
         .name(brand.getName())
+        .status(brand.getStatus() != null ? brand.getStatus().name() : null)
         .createdAt(brand.getCreatedDateTime())
         .updatedAt(brand.getModifiedDateTime())
         .build();

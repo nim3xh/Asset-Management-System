@@ -207,9 +207,39 @@ public class AssetAssignmentServiceImpl implements AssetAssignmentService {
         .id(aa.getId())
         .userId(aa.getUser() != null ? aa.getUser().getUserId() : null)
         .deviceId(aa.getDevice() != null ? aa.getDevice().getDeviceId() : null)
+        .user(aa.getUser() != null ? toUserResponse(aa.getUser()) : null)
+        .device(aa.getDevice() != null ? toDeviceResponse(aa.getDevice()) : null)
+        .status(aa.getStatus() != null ? aa.getStatus().name() : null)
         .returnDate(aa.getReturnDate())
         .createdAt(aa.getCreatedDateTime())
         .updatedAt(aa.getModifiedDateTime())
+        .build();
+  }
+
+  private com.nimesh.assetmanagement.dto.user.UserManagementResponse toUserResponse(User user) {
+    return com.nimesh.assetmanagement.dto.user.UserManagementResponse.builder()
+        .userId(user.getUserId())
+        .firstName(user.getFirstName())
+        .lastName(user.getLastName())
+        .middleName(user.getMiddleName())
+        .email(user.getEmail())
+        .isActive(user.getIsActive())
+        .role(user.getRole())
+        .build();
+  }
+
+  private com.nimesh.assetmanagement.dto.device.DeviceResponse toDeviceResponse(Device device) {
+    return com.nimesh.assetmanagement.dto.device.DeviceResponse.builder()
+        .deviceId(device.getDeviceId())
+        .serialNumber(device.getSerialNumber())
+        .assetTag(device.getAssetTag())
+        .brand(device.getBrand())
+        .model(device.getModel())
+        .purchaseCost(device.getPurchaseCost())
+        .currentStatus(device.getCurrentStatus())
+        .status(device.getStatus() != null ? device.getStatus().name() : null)
+        .createdAt(device.getCreatedDateTime())
+        .updatedAt(device.getModifiedDateTime())
         .build();
   }
 

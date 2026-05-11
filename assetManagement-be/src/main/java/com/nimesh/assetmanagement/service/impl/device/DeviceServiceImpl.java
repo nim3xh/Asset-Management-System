@@ -63,6 +63,14 @@ public class DeviceServiceImpl implements DeviceService {
                 predicates.add(cb.equal(root.get("currentStatus"), com.nimesh.assetmanagement.enums.DeviceStatus.valueOf(currentStatus)));
               } catch (IllegalArgumentException ignored) {}
             }
+
+            // Filter by status (ACTIVE/INACTIVE)
+            String status = filters.get("status");
+            if (status != null && !status.isBlank()) {
+              try {
+                predicates.add(cb.equal(root.get("status"), com.nimesh.assetmanagement.entity.AuditModifyUser.Status.valueOf(status.toUpperCase())));
+              } catch (IllegalArgumentException ignored) {}
+            }
           }
           return cb.and(predicates.toArray(new Predicate[0]));
         };
@@ -135,7 +143,7 @@ public class DeviceServiceImpl implements DeviceService {
         .model(device.getModel())
         .purchaseCost(device.getPurchaseCost())
         .currentStatus(device.getCurrentStatus())
-        .status(device.getStatus())
+        .status(device.getStatus() != null ? device.getStatus().name() : null)
         .createdAt(device.getCreatedDateTime())
         .updatedAt(device.getModifiedDateTime())
         .build();

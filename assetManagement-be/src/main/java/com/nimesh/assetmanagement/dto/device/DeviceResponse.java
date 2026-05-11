@@ -22,7 +22,7 @@ public class DeviceResponse {
   private String model;
   private BigDecimal purchaseCost;
   private DeviceStatus currentStatus;
-  private AuditModifyUser.Status status;
+  private String status;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 }

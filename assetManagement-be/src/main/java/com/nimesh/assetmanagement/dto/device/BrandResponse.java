@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class BrandResponse {
   private Long brandId;
   private String name;
+  private String status;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 }
