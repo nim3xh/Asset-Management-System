@@ -5,6 +5,7 @@ import com.nimesh.assetmanagement.dto.RegistrationRequest;
 import com.nimesh.assetmanagement.response.APIResponse;
 import com.nimesh.assetmanagement.response.AuthResponse;
 import com.nimesh.assetmanagement.service.impl.AuthenticationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +21,7 @@ public class UserController {
 
   @PostMapping(value = "/register")
   ResponseEntity<APIResponse<AuthResponse>> register(
-      @RequestBody RegistrationRequest registrationRequest) {
+      @Valid @RequestBody RegistrationRequest registrationRequest) {
 
     APIResponse<AuthResponse> response = authenticationService.register(registrationRequest);
 
