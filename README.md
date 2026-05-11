@@ -48,3 +48,10 @@ Follow these steps to get the entire system up and running on your local machine
 For more specific details, please refer to the individual README files in each directory:
 - [Backend Documentation](./assetManagement-be/README.md)
 - [Frontend Documentation](./assetManagement-fe/README.md)
+
+## Screen Shots
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/4f7b835f-eea9-4182-b7c7-f67ef16fb4b5" />
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/1673626b-f704-4b0f-b0ac-0513d5ec56e0" />
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/e21af471-1441-4d90-a2dd-23fef6dc0698" />
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/2a695520-4046-4617-86b0-678a62a63022" />
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/08baa209-0a6c-4545-8015-89701b58a5d9" />
