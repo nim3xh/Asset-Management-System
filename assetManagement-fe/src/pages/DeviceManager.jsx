@@ -7,7 +7,7 @@ import { Modal } from '../components/common/Modal'
 import { DataTable } from '../components/common/DataTable'
 import { deviceService } from '../services/device.service'
 import { brandService } from '../services/brand.service'
-import { useAuth } from '../features/auth/useAuth'
+import { useAuth } from '../../features/auth/useAuth'
 
 const STATUS_OPTIONS = [
   { value: 'AVAILABLE', label: 'Available' },
